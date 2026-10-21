@@ -36,7 +36,7 @@
 | 第二轮：撤销缺陷后通过的运行 | <链接> |
 | 未合入分支上的 tag 被 release gate 拒绝的运行 | <https://github.com/SS80194/SE3309_2026_lab1/actions/runs/39583519545> |
 | Release v1.0.0 | <https://github.com/SS80194/SE3309_2026_lab1/releases/tag/v1.0.0> |
-| Release v1.0.1 | <链接> |
+| Release v1.0.1 | <https://github.com/SS80194/SE3309_2026_lab1/releases/tag/v1.0.1> |
 
 ## 4. 追溯与运行
 
@@ -44,12 +44,12 @@
 
 | 项 | v1.0.0 | v1.0.1 |
 |---|---|---|
-| 版本号 | 1.0.0 | <填写> |
-| 构建号 | 1 | <填写> |
-| 提交号（SHA） | 235f574fcbae2d91b566d20b182a6d4bd817489f | <填写> |
-| 引入该提交的 PR | #3 <https://github.com/SS80194/SE3309_2026_lab1/pull/3> | <编号与链接> |
-| 构建它的 Actions 运行（`trace.sh` 给出的链接） | <https://github.com/SS80194/SE3309_2026_lab1/actions/runs/39583364244> | <链接> |
-| 制品 sha256（发布当时，取自 Release 里的 .sha256） | 027877CDE04D7B48DE15948DD8AE1F3B7523CE1CEFE30E6DBB205B7DA6536D00 | <填写> |
+| 版本号 | 1.0.0 | 1.0.1 |
+| 构建号 | 1 | 4 |
+| 提交号（SHA） | 235f574fcbae2d91b566d20b182a6d4bd817489f | eef126cd1e3baa7b98db46e6f5db908290684a89 |
+| 引入该提交的 PR | #3 <https://github.com/SS80194/SE3309_2026_lab1/pull/3> | #4 <https://github.com/SS80194/SE3309_2026_lab1/pull/4> |
+| 构建它的 Actions 运行（`trace.sh` 给出的链接） | <https://github.com/SS80194/SE3309_2026_lab1/actions/runs/39583364244> | <https://github.com/SS80194/SE3309_2026_lab1/actions/runs/39584461409> |
+| 制品 sha256（发布当时，取自 Release 里的 .sha256） | 027877CDE04D7B48DE15948DD8AE1F3B7523CE1CEFE30E6DBB205B7DA6536D00 | B8BB5AA56CF7533FDAC13B582EF02032F42CA6D72F2CC1BCBA7FB2D81118E5A4 |
 
 仅凭构建号能否唯一确定是哪次运行？v1.0.0 的构建号在 `ci` 和 `release` 的运行列表中各对应哪次运行？<填写>
 

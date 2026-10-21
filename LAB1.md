@@ -7,7 +7,7 @@
 | 项 | 内容 |
 |---|---|
 | 小组 | 第 <组号> 组 |
-| 仓库地址 | <https://github.com/…> |
+| 仓库地址 | <https://github.com/SS80194/SE3309_2026_lab1> |
 | 代码载体 | 统一示例 / 自己的项目（<项目名与语言>） |
 | runner 与语言版本 | `ubuntu-24.04`，<Go 或其他语言的版本> |
 | 合并方式 | <squash / merge commit / rebase> |
@@ -30,13 +30,38 @@
 | 第一轮：失败的 PR 运行 | <链接> |
 | 第一轮：修复后通过的 PR 运行 | <链接> |
 | 第一轮：合入 main 后的运行（含制品） | <链接> |
-| 第二轮：找到的缺陷，以及现有测试为何无法发现它 | <一两句话> |
-| 第二轮：仅含缺陷时仍然通过的运行 | <链接> |
-| 第二轮：补测试后失败的运行 | <链接> |
-| 第二轮：撤销缺陷后通过的运行 | <链接> |
+| 第二轮：找到的缺陷，以及现有测试为何无法发现它 | 演练中主动把 `Section.Valid` 的星期上界从 7 改成 6，导致合法周日被拒绝。旧测试只验证周三合法和 0/8 非法，没有验证周日合法，所以检查仍通过。 |
+| 第二轮：仅含缺陷时仍然通过的运行 | <https://github.com/SS80194/SE3309_2026_lab1/actions/runs/39574266980> |
+| 第二轮：补测试后失败的运行 | <https://github.com/SS80194/SE3309_2026_lab1/actions/runs/39574372699> |
+| 第二轮：撤销缺陷后通过的运行 | <https://github.com/SS80194/SE3309_2026_lab1/actions/runs/39574475189> |
 | 未合入分支上的 tag 被 release gate 拒绝的运行 | <链接> |
 | Release v1.0.0 | <链接> |
 | Release v1.0.1 | <链接> |
+
+### 任务 4 第二轮：周日边界漏测演练
+
+PR：<https://github.com/SS80194/SE3309_2026_lab1/pull/2>；分支：`lab1/gate-round2`。
+
+这是主动注入并撤销的边界错误，不是声称原始 main 已有该错误。业务依据是 README 规定 `weekday` 合法值为 1～7，`conflict.go` 字段注释也明确 7 代表周日。
+
+| 阶段 | 提交 | 检查结果 |
+|---|---|---|
+| 有错误，只有原测试 | [`84fe211`](https://github.com/SS80194/SE3309_2026_lab1/commit/84fe211e955903c83ea4800b97b8e9ec2e038cae) | `make fmt-check vet test` 通过，说明原测试漏掉合法周日 |
+| 有错误，补充边界测试 | [`afdc3da`](https://github.com/SS80194/SE3309_2026_lab1/commit/afdc3dacc69d523369c31ce02614b3fb53e9ccf7) | 格式与 vet 通过；测试因周日被拒绝而失败 |
+| 撤销错误，保留新测试 | [`9cd02da`](https://github.com/SS80194/SE3309_2026_lab1/commit/9cd02da15db6b38fcef186e597361fad21d46ffe) | `make fmt-check vet test` 全部通过 |
+
+第二阶段的实际失败输出：
+
+```text
+--- FAIL: TestValidWeekdayBoundaries
+    --- FAIL: TestValidWeekdayBoundaries/周日有效
+        conflict_test.go:74: Section.Valid(weekday=7) = false, want true
+FAIL
+```
+
+新增 `TestValidWeekdayBoundaries` 覆盖 -1、0、1、6、7、8，兼顾合法边界和非法输入。最终 `conflict.go` 与演练前 main 完全相同；保留新增测试与本节证据。失败来自测试发现行为错误，不是格式检查、编译或环境失败。
+
+本地与 CI 均使用 Go 1.26.9；本地三阶段也分别执行相同检查。PR 通过另一位成员审批后，合入 main；是否已合并须以 PR 实际状态及 main 运行记录为准。
 
 ## 4. 追溯与运行
 

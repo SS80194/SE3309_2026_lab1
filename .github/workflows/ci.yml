@@ -1,0 +1,73 @@
+name: ci
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version: '1.26.9'
+
+      - name: Print event information
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REF: ${{ github.ref }}
+          COMMIT_SHA: ${{ github.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          echo "event_name=$EVENT_NAME"
+          echo "ref=$REF"
+          echo "sha=$COMMIT_SHA"
+          echo "pr_head_sha=$PR_HEAD_SHA"
+
+      - name: Check formatting
+        run: make fmt-check
+
+      - name: Check code with vet
+        run: make vet
+
+      - name: Run tests
+        run: make test
+
+      - name: Build package
+        if: github.event_name == 'push'
+        env:
+          BUILD_NO: ${{ github.run_number }}
+          RUN_ID: ${{ github.run_id }}
+          COMMIT_SHA: ${{ github.sha }}
+        run: |
+          make package VERSION=0.0.0-main \
+            BUILD_NO="$BUILD_NO" \
+            RUN_ID="$RUN_ID" \
+            COMMIT="$COMMIT_SHA"
+
+      - name: Print checksums
+        if: github.event_name == 'push'
+        run: |
+          sha256sum dist/enroll-conflict_0.0.0-main_linux_amd64/enroll-conflict
+          sha256sum dist/*.tar.gz
+
+      - name: Upload package
+        if: github.event_name == 'push'
+        uses: actions/upload-artifact@v7
+        with:
+          name: enroll-conflict-${{ github.sha }}-${{ github.run_number }}
+          path: |
+            dist/*.tar.gz
+            dist/*.tar.gz.sha256
+          retention-days: 14
+          if-no-files-found: error

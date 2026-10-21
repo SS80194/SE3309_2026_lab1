@@ -10,7 +10,7 @@
 | 仓库地址 | <https://github.com/SS80194/SE3309_2026_lab1> |
 | 代码载体 | 统一示例（Go） |
 | runner 与语言版本 | `ubuntu-24.04`，Go 1.26.9 |
-| 合并方式 | 目标及 PR #3～#5 使用 squash；PR #1 误用了 merge commit，见问题 2 |
+| 合并方式 | 规则集当前只允许 squash；PR #3～#5 使用 squash，PR #1 在规则修正前误用了 merge commit，见问题 2 |
 
 ## 2. 任务 0：本地基线
 
@@ -25,7 +25,7 @@
 
 | 项 | 链接或文本 |
 |---|---|
-| 规则集里启用的规则 | `protect-main`（Active，默认分支，Bypass list 为空）：Restrict deletions；Block force pushes；Require a pull request before merging（审批 1 人）；Require status checks to pass。**提交前复核：GitHub API 当前仍显示必需检查列表为空，组长须把 `ci` 实际加入列表并保存。** |
+| 规则集里启用的规则 | `protect-main`（Active，默认分支，Bypass list 为空）：Restrict deletions；Block force pushes；Require a pull request before merging（审批 1 人，只允许 squash）；Require status checks to pass（必需检查为 `ci`）。2026-10-21 20:11（北京时间）通过 GitHub API 复核。 |
 | 组长直接 `git push origin main` 被拒的终端输出 | `remote: error: GH013: Repository rule violations found for refs/heads/main.`<br>`remote: - Changes must be made through a pull request.`<br>`! [remote rejected] HEAD -> main (push declined due to repository rule violations)` |
 | 第一轮：失败的 PR 运行 | [ci #2（failure，19 秒）](https://github.com/SS80194/SE3309_2026_lab1/actions/runs/39568009947) |
 | 第一轮：修复后通过的 PR 运行 | [ci #3（success，17 秒）](https://github.com/SS80194/SE3309_2026_lab1/actions/runs/39568759228)；PR 重新打开后另有 [ci #4（success，18 秒）](https://github.com/SS80194/SE3309_2026_lab1/actions/runs/39570065522) |
@@ -157,7 +157,7 @@ go=go1.26.9
 
 **问题 1：gate 的收益与成本。** 两轮演练中，gate 拦住了什么，没有拦住什么？用第 5 节的时间线计算：第一轮因失败多花了多少时间，其中等待 `ci` 的时间和人工修改的时间各占多少？一次 `ci` 大约需要多久，在“提交到发布的间隔”中占多大比例？第二轮补充测试之后，还有哪类问题是测试本身无法发现的？
 
-所用数据：第一轮失败运行 19 秒；失败结束于 16:16:38，修复提交于 16:22:15；CI 中位数 19 秒；PR #3、#4 从首次提交到发布分别为 7 分 28 秒和 6 分。第一轮中，错误使 CI 失败并阻止当时的合并，修复且由另一位组员审批后才继续；从失败开始计算，额外花费 5 分 56 秒，其中等待失败 CI 为 19 秒，定位和修改为 5 分 37 秒。一次 CI 约 19 秒，占上述两个较短发布间隔的约 4.2% 和 5.3%，因此本次实验中自动检查本身的等待成本较小。第二轮说明原有测试没有覆盖星期日边界，只有补上针对性测试后才暴露缺陷，因此 gate 只能拦住现有检查能够识别的问题。测试本身仍无法发现共同需求理解错误、未写断言的边界、生产环境配置、性能和安全等问题，还需要评审、监控及其他验证手段。上述“阻止合并”的结论成立条件是 main 规则确实把 `ci` 设为 required status check；截至本报告整理时规则 API 的 required checks 仍为空，组长还需完成这一步，否则 CI 会报告失败但不一定由平台强制阻止合并。
+所用数据：第一轮失败运行 19 秒；失败结束于 16:16:38，修复提交于 16:22:15；CI 中位数 19 秒；PR #3、#4 从首次提交到发布分别为 7 分 28 秒和 6 分。第一轮中，错误使 CI 失败并阻止当时的合并，修复且由另一位组员审批后才继续；从失败开始计算，额外花费 5 分 56 秒，其中等待失败 CI 为 19 秒，定位和修改为 5 分 37 秒。一次 CI 约 19 秒，占上述两个较短发布间隔的约 4.2% 和 5.3%，因此本次实验中自动检查本身的等待成本较小。第二轮说明原有测试没有覆盖星期日边界，只有补上针对性测试后才暴露缺陷，因此 gate 只能拦住现有检查能够识别的问题。测试本身仍无法发现共同需求理解错误、未写断言的边界、生产环境配置、性能和安全等问题，还需要评审、监控及其他验证手段。上述“阻止合并”的结论成立条件是 main 规则确实把 `ci` 设为 required status check；2026-10-21 20:11（北京时间）复核时该条件已经满足。
 
 **问题 2：PR 中的构建与 main 上的构建。** 在 PR 触发的运行日志中，`github.sha` 与 `pull_request.head.sha` 是否相同？它们能否在 main 的历史中找到？答案与合并方式有关，请写明本组使用的方式。合并之后，main 上这次改动的提交号是哪个？据此说明，为什么待发布的制品只能从 main 上的提交或 tag 构建。
 

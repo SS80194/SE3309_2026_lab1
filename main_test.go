@@ -19,6 +19,9 @@ func TestHealthz(t *testing.T) {
 func TestVersionEndpoint(t *testing.T) {
 	rec := httptest.NewRecorder()
 	newMux().ServeHTTP(rec, httptest.NewRequest("GET", "/version", nil))
+	if got := rec.Header().Get("Cache-Control"); got != "no-store" {
+		t.Errorf("/version Cache-Control = %q，期望 no-store", got)
+	}
 	var got versionInfo
 	if err := json.Unmarshal(rec.Body.Bytes(), &got); err != nil {
 		t.Fatalf("/version 不是合法 JSON：%v", err)

@@ -10,7 +10,7 @@
 | 仓库地址 | <https://github.com/SS80194/SE3309_2026_lab1> |
 | 代码载体 | 统一示例（Go） |
 | runner 与语言版本 | `ubuntu-24.04`，Go 1.26.9 |
-| 合并方式 | 规则集当前只允许 squash；PR #3～#5 使用 squash，PR #1 在规则修正前误用了 merge commit，见问题 2 |
+| 合并方式 | squash（仓库设置与规则集均只允许 squash）。6 个 PR 在 main 上各对应一个提交；PR #1 的提交标题沿用了合并对话框的默认文案，但它仍是单父提交的 squash 提交，见问题 2 |
 
 ## 2. 任务 0：本地基线
 
@@ -26,7 +26,7 @@
 | 项 | 链接或文本 |
 |---|---|
 | 规则集里启用的规则 | `protect-main`（Active，默认分支，Bypass list 为空）：Restrict deletions；Block force pushes；Require a pull request before merging（审批 1 人，只允许 squash）；Require status checks to pass（必需检查为 `ci`）。2026-10-21 20:11（北京时间）通过 GitHub API 复核。 |
-| 组长直接 `git push origin main` 被拒的终端输出 | `remote: error: GH013: Repository rule violations found for refs/heads/main.`<br>`remote: - Changes must be made through a pull request.`<br>`! [remote rejected] HEAD -> main (push declined due to repository rule violations)` |
+| 组长直接 `git push origin main` 被拒的终端输出 | 2026-10-22 10:47（北京时间）以管理员账号实测：<br>`remote: error: GH013: Repository rule violations found for refs/heads/main.`<br>`remote: - Changes must be made through a pull request.`<br>`remote: - Required status check "ci" is expected.`<br>`! [remote rejected] main -> main (push declined due to repository rule violations)`<br>`error: failed to push some refs to 'github.com:SS80194/SE3309_2026_lab1.git'` |
 | 第一轮：失败的 PR 运行 | [ci #2（failure，19 秒）](https://github.com/SS80194/SE3309_2026_lab1/actions/runs/39568009947) |
 | 第一轮：修复后通过的 PR 运行 | [ci #3（success，17 秒）](https://github.com/SS80194/SE3309_2026_lab1/actions/runs/39568759228)；PR 重新打开后另有 [ci #4（success，18 秒）](https://github.com/SS80194/SE3309_2026_lab1/actions/runs/39570065522) |
 | 第一轮：合入 main 后的运行（含制品） | [ci #5（success，19 秒，含 artifact）](https://github.com/SS80194/SE3309_2026_lab1/actions/runs/39570884805) |
@@ -61,7 +61,7 @@ FAIL
 
 新增 `TestValidWeekdayBoundaries` 覆盖 -1、0、1、6、7、8，兼顾合法边界和非法输入。最终 `conflict.go` 与演练前 main 完全相同；保留新增测试与本节证据。失败来自测试发现行为错误，不是格式检查、编译或环境失败。
 
-本地与 CI 均使用 Go 1.26.9；本地三阶段也分别执行相同检查。PR 通过另一位成员审批后，合入 main；是否已合并须以 PR 实际状态及 main 运行记录为准。
+本地与 CI 均使用 Go 1.26.9；本地三阶段也分别执行相同检查。PR 经另一位组员审批后，于 2026-10-22 10:33（北京时间）squash 合入 main，对应提交 `a434609`；main 上仅新增该回归测试，`conflict.go` 保持演练前原状。
 
 ## 4. 追溯与运行
 
@@ -150,7 +150,7 @@ go=go1.26.9
 | 第一次 `ci` 失败（运行结束） | 2026-10-21 16:16:38 | [run 39568009947](https://github.com/SS80194/SE3309_2026_lab1/actions/runs/39568009947) |
 | 推送修复提交 | 2026-10-21 16:22:15 | [commit 90874f8](https://github.com/SS80194/SE3309_2026_lab1/commit/90874f8406797e3b3ee1b77731269006101ca410) |
 | `ci` 通过（运行结束） | 2026-10-21 16:22:38 | [run 39568759228](https://github.com/SS80194/SE3309_2026_lab1/actions/runs/39568759228) |
-| 合入 main | 2026-10-21 16:39:04 | [merge commit 5276085](https://github.com/SS80194/SE3309_2026_lab1/commit/527608575a3091fb2af3f4965506e9250f5057f4) |
+| 合入 main | 2026-10-21 16:39:04 | [squash 提交 5276085](https://github.com/SS80194/SE3309_2026_lab1/commit/527608575a3091fb2af3f4965506e9250f5057f4) |
 
 以上均为北京时间（UTC+8）。
 
@@ -186,7 +186,7 @@ go=go1.26.9
 
 **问题 2：PR 中的构建与 main 上的构建。** 在 PR 触发的运行日志中，`github.sha` 与 `pull_request.head.sha` 是否相同？它们能否在 main 的历史中找到？答案与合并方式有关，请写明本组使用的方式。合并之后，main 上这次改动的提交号是哪个？据此说明，为什么待发布的制品只能从 main 上的提交或 tag 构建。
 
-所用数据：PR #1 通过运行中 `github.sha=c6bb30b6530400e66a32abd88d2cb03f7208d576`，`pull_request.head.sha=90874f8406797e3b3ee1b77731269006101ca410`，合入 main 后对应提交为 `527608575a3091fb2af3f4965506e9250f5057f4`。两者不相同：前者是 GitHub 为 PR 检查生成的临时合并提交，后者是分支头提交。PR #1 实际使用 merge commit 合并，所以 head SHA 能在 main 的祖先历史中找到，而临时 `github.sha` 不能；最终 main 上代表这次合并的是 `5276085...`。本组原定只使用 squash，后续 PR #3～#5 的确使用 squash，此时 PR 的 head SHA 也不会等于 main 上新生成的 squash 提交，例如 PR #3 的 head 为 `cc296cd...`、main 提交为 `235f574...`。这说明 PR 构建可能针对临时合并提交或之后会被改写的分支提交，不能作为最终发布血缘的稳定标识。待发布制品因此只能从已落在 main 的提交或指向它的不可变 tag 构建，才能让制品内 commit、仓库历史与 Release 相互追溯；这一结论的条件是 tag 指向经过 gate 的 main 提交且发布后不被移动。
+所用数据：PR #1 通过运行中 `github.sha=c6bb30b6530400e66a32abd88d2cb03f7208d576`，`pull_request.head.sha=90874f8406797e3b3ee1b77731269006101ca410`，合入 main 后对应提交为 `527608575a3091fb2af3f4965506e9250f5057f4`。两者不相同：前者是 GitHub 为 PR 检查生成的临时合并提交，后者是分支头提交。PR #1 同样是 squash 合并：main 上的 `5276085` 只有一个父提交（`git rev-list --parents -n 1 5276085` 可验证），内容是分支三个提交的净变更（`conflict_test.go` 新增 1 行），只是提交标题沿用了合并对话框里可编辑的默认文案 `Merge pull request #1 from …`。因此 `github.sha` 与 `pull_request.head.sha` **都不在 main 的历史中**：`git merge-base --is-ancestor 90874f8 origin/main` 返回非零；两者只存在于 `refs/pull/1/*` 或已删除的分支上。后续 PR #3～#5 同理，例如 PR #3 的 head 为 `cc296cd…`、main 上对应提交为 `235f574…`。这说明 PR 构建可能针对临时合并提交或之后会被改写的分支提交，不能作为最终发布血缘的稳定标识。待发布制品因此只能从已落在 main 的提交或指向它的不可变 tag 构建，才能让制品内 commit、仓库历史与 Release 相互追溯；这一结论的条件是 tag 指向经过 gate 的 main 提交且发布后不被移动。
 
 **问题 3：可重复构建。** 在本地同一个提交上按下表构建，记录哈希值。④、⑤ 需临时去掉 Makefile 中 tar 的 `--mtime=@0`，完成后用 `git checkout -- Makefile` 恢复，不要提交。
 
@@ -197,15 +197,15 @@ go=go1.26.9
 | ③ | 仅将 `BUILD_NO` 改为 `101` | `27a05d3fdc81a9e89f2ecb10b70962615ec72cc539c2241d4443932aca78289a` | `408b4b99bb671509e4da9a90dc143db1541349fb95d54b674f0656acc1217c1b` |
 | ④ | 去掉 `--mtime=@0`，其余同 ① | `c7f236fa022189b3364ea1fce6656bea6fa0efea0576e7e46ff8b002f8350419` | `92a1cf0a5c19c39be9f8c60824866b999620d4d77fceb28ba79182dfff76b5c0` |
 | ⑤ | 同 ④，间隔数秒后再构建一次 | `c7f236fa022189b3364ea1fce6656bea6fa0efea0576e7e46ff8b002f8350419` | `139200b0480dd7cb83726f30ee36fabc23c5122d8609064220875cc147a88933` |
-| Actions | 对 main 的 [CI #5](https://github.com/SS80194/SE3309_2026_lab1/actions/runs/39570884805) 执行 Re-run all jobs | **待有 Actions 写权限的成员重跑后填写 attempt 1/2** | **待有 Actions 写权限的成员重跑后填写 attempt 1/2** |
+| Actions | 对 main 的 [CI #5](https://github.com/SS80194/SE3309_2026_lab1/actions/runs/39570884805) 执行 Re-run all jobs | attempt 1 与 attempt 2 均为 `d347262adcc25962a86fb73b5561ae1dfab412b4feb07111a208bdb62a78a753` | 两次均为 `f6a9a985a9138fa2112b6768aea485f466f19dd9896bb778c3d6b651b8d945da` |
 
 哪些相同、哪些不同，原因分别是什么？④ 的二进制文件与 ① 是否相同？如果不同，请结合任务 0 中看到的 vcs 信息分析。据此说明制品中应当包含什么、不应包含什么。另外，`release` 在同一个提交上再次编译，而没有直接发布 `ci` 产出的主干制品：为什么这样做？这与 L-05 第 11 页的“一次构建、多处部署”是否冲突，代价是什么？
 
-所用数据：本地构建 ①～⑤ 的哈希如表；任务 0 还观察到工作区修改会令 Go 构建信息从 `vcs.modified=false` 变为 `true`。①与②完全相同，说明固定输入并把 tar 内文件时间归零时结果可重复；③改变了写入程序的构建号，所以二进制和归档都改变。④、⑤的二进制相同而 tar 不同，因为去掉 `--mtime=@0` 后归档记录了不同文件时间；④的二进制又不同于①，是因为临时修改 Makefile 使 Go 嵌入了 `vcs.modified=true`。制品应包含版本、main/tag 提交号、构建号和运行号等可追溯的确定性信息，不应包含无必要的当前时间、主机路径或其他易变环境数据，并应在干净且固定的工具链环境中构建。`release` 在同一提交上重新编译，是为了注入正式版本号并生成 Release 附件，但它没有直接提升 CI 的既有主干制品，严格说与“一次构建、多处部署”有冲突，代价是重复计算时间以及两次环境或输入漂移造成不同二进制的风险。Actions 行的结论还以同一次 main 运行完成第二次 attempt 为条件；当前账号无重跑权限，不能把尚未取得的数据伪造进报告。
+所用数据：本地构建 ①～⑤ 的哈希如表；任务 0 还观察到工作区修改会令 Go 构建信息从 `vcs.modified=false` 变为 `true`。①与②完全相同，说明固定输入并把 tar 内文件时间归零时结果可重复；③改变了写入程序的构建号，所以二进制和归档都改变。④、⑤的二进制相同而 tar 不同，因为去掉 `--mtime=@0` 后归档记录了不同文件时间；④的二进制又不同于①，是因为临时修改 Makefile 使 Go 嵌入了 `vcs.modified=true`。制品应包含版本、main/tag 提交号、构建号和运行号等可追溯的确定性信息，不应包含无必要的当前时间、主机路径或其他易变环境数据，并应在干净且固定的工具链环境中构建。`release` 在同一提交上重新编译，是为了注入正式版本号并生成 Release 附件，但它没有直接提升 CI 的既有主干制品，严格说与“一次构建、多处部署”有冲突，代价是重复计算时间以及两次环境或输入漂移造成不同二进制的风险。Actions 行对同一 run（#5，提交 `5276085`、`BUILD_NO=5`、`RUN_ID=39570884805`）执行 Re-run all jobs 后，attempt 1 与 attempt 2 得到完全相同的二进制与归档哈希，说明 `github.run_attempt` 不参与构建输入，只要提交、构建参数、Go 补丁版本与 runner 镜像不变，重跑不会改变产物；该结论成立的条件是工具链与工作区保持固定且干净，镜像内软件或 Go 版本一旦变化仍可能产生不同结果。
 
 **问题 4：发布与回退。** 假设 v1.0.1 发布后发现缺陷，应当如何处理？为什么不应删除 v1.0.1 的 tag、再用同一版本号重新发布？任务 6 中将服务从 v1.0.1 切换回 v1.0.0 时，使用的是哪个文件，是否需要重新构建？请用两次 `/version` 的输出说明。如果改为从源码重新构建 v1.0.0，得到的文件与原附件是否相同（参考问题 3）？最后，如果有人删除 v1.0.0 的附件，换上一个新文件和对应的新 `.sha256`，`trace.sh` 能否发现？本组在第 4 节记录的值能否发现？可以查阅 GitHub 的 Immutable releases 设置的用途。
 
-所用数据：实际下载的 v1.0.0 文件 `enroll-conflict_1.0.0_linux_amd64.tar.gz` 校验通过，回退前 `/version` 为 `{"version":"1.0.1","commit":"eef126cd1e3baa7b98db46e6f5db908290684a89","build_no":"4","go":"go1.26.9"}`，切换后为 `{"version":"1.0.0","commit":"235f574fcbae2d91b566d20b182a6d4bd817489f","build_no":"1","go":"go1.26.9"}`。v1.0.1 出现缺陷时，应保留现有 tag 和附件，先回退到已验证的 v1.0.0，再通过新 PR 修复并发布递增版本（例如 v1.0.2）。删除 v1.0.1 tag 后复用同一版本号会让不同用户拿到同名异物，破坏缓存、审计记录和哈希所代表的供应链身份。任务 6 的回退直接运行已保存的 v1.0.0 Release 归档，不需要重新构建；上述两次输出证明实际运行版本、提交和构建号一起恢复。若改为从源码重建，只有源码、工具链、环境、构建参数和归档元数据全部固定且工作区干净时才可能与原附件逐字节相同，问题 3 已证明易变元数据会改变结果。若攻击者把附件和同目录下的新 `.sha256` 一起替换，单独运行 `trace.sh` 仍可能校验通过，但会与第 4 节已经外部记录的 v1.0.0 哈希 `027877cde04d7b48de15948dd8ae1f3b7523ce1fe30e6dbb205b7da6536d00` 不符。GitHub Immutable releases 可进一步锁定发布的 tag 和附件，降低事后篡改风险；该结论以功能已由仓库管理员启用为条件。
+所用数据：实际下载的 v1.0.0 文件 `enroll-conflict_1.0.0_linux_amd64.tar.gz` 校验通过，回退前 `/version` 为 `{"version":"1.0.1","commit":"eef126cd1e3baa7b98db46e6f5db908290684a89","build_no":"4","go":"go1.26.9"}`，切换后为 `{"version":"1.0.0","commit":"235f574fcbae2d91b566d20b182a6d4bd817489f","build_no":"1","go":"go1.26.9"}`。v1.0.1 出现缺陷时，应保留现有 tag 和附件，先回退到已验证的 v1.0.0，再通过新 PR 修复并发布递增版本（例如 v1.0.2）。删除 v1.0.1 tag 后复用同一版本号会让不同用户拿到同名异物，破坏缓存、审计记录和哈希所代表的供应链身份。任务 6 的回退直接运行已保存的 v1.0.0 Release 归档，不需要重新构建；上述两次输出证明实际运行版本、提交和构建号一起恢复。若改为从源码重建，只有源码、工具链、环境、构建参数和归档元数据全部固定且工作区干净时才可能与原附件逐字节相同，问题 3 已证明易变元数据会改变结果。若攻击者把附件和同目录下的新 `.sha256` 一起替换，单独运行 `trace.sh` 仍可能校验通过，但会与第 4 节已经外部记录的 v1.0.0 哈希 `027877cde04d7b48de15948dd8ae1f3b7523ce1cefe30e6dbb205b7da6536d00` 不符。GitHub Immutable releases 可进一步锁定发布的 tag 和附件，降低事后篡改风险；该结论以功能已由仓库管理员启用为条件。
 
 ## 7. 选做记录
 
@@ -221,8 +221,8 @@ go=go1.26.9
 
 | GitHub 用户名 | 发起并合入的 PR 编号 | 审批过的 PR 编号 |
 |---|---|---|
-| SS80194 | 尚无（需补一个本人发起并合入的 PR） | #1、#2、#3、#4、#5 |
-| qeeenn | #1 | 无 |
-| ARMANDSnow | #2（已审批，当前尚未合入） | 无 |
+| SS80194 | #7 | #1、#2、#3、#4、#5、#6 |
+| qeeenn | #1 | #7 |
+| ARMANDSnow | #2 | 无 |
 | ShawneeLiu | #3、#4、#5 | 无 |
-| qk3256 | #6（待审批、合入） | 无 |
+| qk3256 | #6 | 无 |

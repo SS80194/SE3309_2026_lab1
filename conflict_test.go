@@ -52,3 +52,27 @@ func TestValid(t *testing.T) {
 		}
 	}
 }
+
+// 星期取值为 1～7；有效上界和无效值都必须检查。
+func TestValidWeekdayBoundaries(t *testing.T) {
+	cases := []struct {
+		name    string
+		weekday int
+		want    bool
+	}{
+		{"负数无效", -1, false},
+		{"零无效", 0, false},
+		{"周一有效", 1, true},
+		{"周六有效", 6, true},
+		{"周日有效", 7, true},
+		{"超过周日无效", 8, false},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			s := Section{Weekday: c.weekday, Start: 1, End: 2, Weeks: AllWeeks}
+			if got := s.Valid(); got != c.want {
+				t.Errorf("Section.Valid(weekday=%d) = %v, want %v", c.weekday, got, c.want)
+			}
+		})
+	}
+}
